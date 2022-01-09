@@ -8,6 +8,7 @@ import com.ead.course.services.ModuleService;
 import com.ead.course.specifications.SpecificationTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -70,10 +71,10 @@ public class ModuleController {
     }
 
     @GetMapping("/courses/{courseId}/modules")
-    public ResponseEntity<List<ModuleModel>> getAllModulesFromACourse(@PathVariable(value = "courseId") UUID courseId,
+    public ResponseEntity<Page<ModuleModel>> getAllModulesFromACourse(@PathVariable(value = "courseId") UUID courseId,
                                                                       SpecificationTemplate.ModuleSpec spec,
                                                                       @PageableDefault(page = 0, size = 10, sort = "moduleId", direction = Sort.Direction.ASC) Pageable pageable){
-        return ResponseEntity.status(HttpStatus.OK).body(moduleService.findAllModulesByCourse(courseId));
+        return ResponseEntity.status(HttpStatus.OK).body(moduleService.findAllModulesByCourse(SpecificationTemplate.moduleCourseId(courseId).and(spec), pageable));
     }
 
     @GetMapping("/courses/{courseId}/modules/{moduleId}")
