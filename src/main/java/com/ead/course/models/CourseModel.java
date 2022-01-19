@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "tb_courses")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CourseModel implements Serializable {
+public class CourseModel extends RepresentationModel<CourseModel> implements Serializable {
     private static final Long serialVersionUID = 1L;
 
     @Id
