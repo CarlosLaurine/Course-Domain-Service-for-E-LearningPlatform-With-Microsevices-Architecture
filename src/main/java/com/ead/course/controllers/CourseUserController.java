@@ -1,7 +1,10 @@
 package com.ead.course.controllers;
 
 import com.ead.course.clients.AuthUserClient;
+import com.ead.course.dtos.SubscriptionDTO;
 import com.ead.course.dtos.UserDTO;
+import com.ead.course.models.CourseModel;
+import com.ead.course.models.CourseUserModel;
 import com.ead.course.services.CourseService;
 import com.ead.course.services.CourseUserService;
 import lombok.extern.log4j.Log4j2;
@@ -12,11 +15,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.util.Optional;
 import java.util.UUID;
 
 @Log4j2
@@ -37,6 +39,24 @@ public class CourseUserController {
     public ResponseEntity<Page<UserDTO>> getAllUsersByCourse(@PathVariable(value = "courseId") UUID courseId,
                                                              @PageableDefault(page = 0, size = 10, sort = "userId", direction = Sort.Direction.ASC) Pageable pageable){
         return ResponseEntity.status(HttpStatus.OK).body(userClient.getAllUsersByCourse(courseId, pageable));
+    }
+
+    @PostMapping("/courses/{courseId}/users/subscription")
+    public ResponseEntity<Object> registerSubscriptionUserInCourse(@PathVariable(value = "courseId") UUID courseId,
+                                                                   @RequestBody @Valid SubscriptionDTO dto){
+        Optional<CourseModel> courseModelOptional = courseService.findById(courseId);
+        if(!courseModelOptional.isPresent()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course Not Found");
+        }
+
+        if(courseUserService.existsByCourseAndUserId(courseModelOptional.get(), dto.getUserId())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User already registered for this Course");
+        }
+
+        CourseUserModel courseUserModel = courseUserService.save(courseModelOptional.get().convertToCourseUserModel(dto.getUserId()));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Subscription successfully created");
+
     }
 
 }
