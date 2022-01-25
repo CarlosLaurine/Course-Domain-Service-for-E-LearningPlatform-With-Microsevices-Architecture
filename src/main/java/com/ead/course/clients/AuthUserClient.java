@@ -5,6 +5,7 @@ import com.ead.course.dtos.UserDTO;
 import com.ead.course.services.UtilsService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -28,11 +29,12 @@ public class AuthUserClient {
     @Autowired
     private UtilsService utilsService;
 
-    private String REQUEST_URI="http://localhost:8082";
+    @Value("${ead.api.url.authuser}")
+    private String REQUEST_URI_AUTHUSER;
 
     public Page<UserDTO> getAllUsersByCourse(UUID courseId, Pageable pageable){
         List<UserDTO> searchResult = null;
-        String requestUrl = utilsService.generateUrl(courseId, pageable);
+        String requestUrl = REQUEST_URI_AUTHUSER + utilsService.generateUrlGetAllUsersByCourse(courseId, pageable);
         log.debug("Request URL: {} ", requestUrl);
         log.info("Request URL: {} ", requestUrl);
         try{
