@@ -57,4 +57,8 @@ public class CourseModel extends RepresentationModel<CourseModel> implements Ser
     @Fetch(FetchMode.JOIN)
     private Set<CourseUserModel> courseUsers;
 
+    public CourseUserModel convertToCourseUserModel(UUID userId){
+        return new CourseUserModel(null, userId, this);
+    }
+
 }
