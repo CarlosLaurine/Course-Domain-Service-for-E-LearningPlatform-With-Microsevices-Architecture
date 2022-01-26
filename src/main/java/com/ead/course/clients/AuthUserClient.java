@@ -4,6 +4,7 @@ import com.ead.course.dtos.ResponsePageDTO;
 import com.ead.course.dtos.UserDTO;
 import com.ead.course.services.UtilsService;
 import lombok.extern.log4j.Log4j2;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -47,5 +48,10 @@ public class AuthUserClient {
         }
         log.info("Ending request /users courseId {} ", courseId);
         return new PageImpl<>(searchResult);
+    }
+
+    public ResponseEntity<UserDTO> getUserById (UUID userId){
+        String requestUrl = REQUEST_URI_AUTHUSER + utilsService.generateUrlgetUserById(userId);
+        return restTemplate.exchange(requestUrl, HttpMethod.GET, null, UserDTO.class);
     }
 }
