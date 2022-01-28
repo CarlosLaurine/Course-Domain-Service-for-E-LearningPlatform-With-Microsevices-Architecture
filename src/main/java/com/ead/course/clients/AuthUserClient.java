@@ -1,10 +1,10 @@
 package com.ead.course.clients;
 
+import com.ead.course.dtos.CourseUserDTO;
 import com.ead.course.dtos.ResponsePageDTO;
 import com.ead.course.dtos.UserDTO;
 import com.ead.course.services.UtilsService;
 import lombok.extern.log4j.Log4j2;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -31,11 +31,11 @@ public class AuthUserClient {
     private UtilsService utilsService;
 
     @Value("${ead.api.url.authuser}")
-    private String REQUEST_URI_AUTHUSER;
+    private String REQUEST_URL_AUTHUSER;
 
     public Page<UserDTO> getAllUsersByCourse(UUID courseId, Pageable pageable){
         List<UserDTO> searchResult = null;
-        String requestUrl = REQUEST_URI_AUTHUSER + utilsService.generateUrlGetAllUsersByCourse(courseId, pageable);
+        String requestUrl = REQUEST_URL_AUTHUSER + utilsService.generateUrlGetAllUsersByCourse(courseId, pageable);
         log.debug("Request URL: {} ", requestUrl);
         log.info("Request URL: {} ", requestUrl);
         try{
@@ -44,14 +44,25 @@ public class AuthUserClient {
             searchResult = responseEntity.getBody().getContent();
             log.debug("Response Number of Elements (Users): {} ", searchResult.size());
         } catch (HttpStatusCodeException exception){
-            log.error("Error request /users endpoint exception {} ", exception);
+            log.error("Error request /users endpoint exception: {}", exception);
         }
         log.info("Ending request /users courseId {} ", courseId);
         return new PageImpl<>(searchResult);
     }
 
     public ResponseEntity<UserDTO> getUserById (UUID userId){
-        String requestUrl = REQUEST_URI_AUTHUSER + utilsService.generateUrlgetUserById(userId);
+        String requestUrl = REQUEST_URL_AUTHUSER + utilsService.generateUrlgetUserById(userId);
         return restTemplate.exchange(requestUrl, HttpMethod.GET, null, UserDTO.class);
+    }
+
+    public void postSubscriptionUserInCourse(UUID userId, UUID courseId) {
+        String requestUrl = REQUEST_URL_AUTHUSER + utilsService.generateUrlPostSubscriptionUserInCourse(userId);
+
+        var courseUserDTO = new CourseUserDTO();
+
+        courseUserDTO.setUserId(userId);
+        courseUserDTO.setCourseId(courseId);
+
+        restTemplate.postForObject(requestUrl, courseUserDTO, String.class);
     }
 }
