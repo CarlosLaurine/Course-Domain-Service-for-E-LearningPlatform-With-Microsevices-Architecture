@@ -20,4 +20,9 @@ public class UtilsServiceImpl implements UtilsService {
     public String generateUrlgetUserById(UUID userId) {
         return "/users/" + userId;
     }
+
+    @Override
+    public String generateUrlPostSubscriptionUserInCourse(UUID userId) {
+        return "/users/" + userId + "/courses/subscription";
+    }
 }
