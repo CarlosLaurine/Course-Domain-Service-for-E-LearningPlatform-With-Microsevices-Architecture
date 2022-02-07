@@ -1,5 +1,7 @@
 server:
   port: 8087
+  servlet:
+    context-path: '/ead-course/'
 
 spring:
   datasource:
