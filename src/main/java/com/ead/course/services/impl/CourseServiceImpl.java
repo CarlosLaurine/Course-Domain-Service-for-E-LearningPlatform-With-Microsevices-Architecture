@@ -1,5 +1,6 @@
 package com.ead.course.services.impl;
 
+import com.ead.course.clients.AuthUserClient;
 import com.ead.course.models.CourseModel;
 import com.ead.course.models.CourseUserModel;
 import com.ead.course.models.LessonModel;
@@ -30,10 +31,14 @@ public class CourseServiceImpl implements CourseService {
     private LessonRepository lessonRepository;
     @Autowired
     private CourseUserRepository courseUserRepository;
+    @Autowired
+    private AuthUserClient authUserClient;
 
     @Transactional
     @Override
     public void delete(CourseModel courseModel) {
+
+        boolean userCourseBindingsExist = false;
 
         List<ModuleModel> courseModulesList = moduleRepository.findAllModulesIntoCourse(courseModel.getCourseId());
         if(!courseModulesList.isEmpty()){
@@ -48,8 +53,12 @@ public class CourseServiceImpl implements CourseService {
         List<CourseUserModel> subscriptions = courseUserRepository.findAllSubscriptionsFromACourse(courseModel.getCourseId());
         if(!subscriptions.isEmpty()){
             courseUserRepository.deleteAll(subscriptions);
+            userCourseBindingsExist = true;
         }
         courseRepository.delete(courseModel);
+        if(userCourseBindingsExist){
+            authUserClient.deleteCourseInAuthUser(courseModel.getCourseId());
+        }
     }
 
     @Override
