@@ -10,4 +10,6 @@ public interface UtilsService {
     String generateUrlgetUserById(UUID userId);
 
     String generateUrlPostSubscriptionUserInCourse(UUID userId);
+
+    String generateUrlDeleteCourseInAuthUser (UUID courseId);
 }
