@@ -24,6 +24,13 @@ public class SpecificationTemplate {
     })
     public interface CourseSpec extends Specification<CourseModel> {}
 
+    @And({
+            @Spec(path="email", spec= Like.class),
+            @Spec(path = "fullName", spec = Like.class),
+            @Spec(path="userStatus", spec= Equal.class),
+            @Spec(path="userType", spec= Equal.class)})
+    public interface UserSpec extends Specification<UserModel> {}
+
     @Spec(path = "title", spec = Like.class)
     public interface ModuleSpec extends Specification<ModuleModel> {}
 
