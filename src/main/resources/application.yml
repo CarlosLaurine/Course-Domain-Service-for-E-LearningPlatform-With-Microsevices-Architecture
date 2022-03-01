@@ -5,7 +5,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/ead-course
+    url: jdbc:postgresql://localhost:5434/ead-course-v2
     username: postgres
     password: admin
   jpa:
