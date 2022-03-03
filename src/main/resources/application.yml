@@ -19,6 +19,8 @@ spring:
         show-sql: true
   application:
     name: ead-course-service
+  rabbitmq:
+    addresses: amqps://pbnubozr:xM3lGCUyQzjF_kfiTtyGBRbHJgDa_W8N@jackal.rmq.cloudamqp.com/pbnubozr
 
 logging:
   level:
