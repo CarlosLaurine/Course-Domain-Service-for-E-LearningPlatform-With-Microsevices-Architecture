@@ -33,6 +33,12 @@ ead:
   api:
     url:
       authuser: 'http://ead-authuser-service/ead-authuser'
+  broker:
+    exchange:
+      user-event-exchange: ead.userevent
+    queue:
+      user-event-queue:
+        name: ead.userevent.ms.course
 
 eureka:
   client:
