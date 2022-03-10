@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     @Autowired
-    CachingConnectionFactory cachingConnectionFactory;
+    private CachingConnectionFactory cachingConnectionFactory;
 
     @Bean
     public RabbitTemplate rabbitTemplate() {
