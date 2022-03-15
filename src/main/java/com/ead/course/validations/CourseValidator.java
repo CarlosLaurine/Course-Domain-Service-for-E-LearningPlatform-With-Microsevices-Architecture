@@ -1,12 +1,16 @@
 package com.ead.course.validations;
 
 import com.ead.course.dtos.CourseDTO;
+import com.ead.course.enums.UserType;
+import com.ead.course.models.UserModel;
+import com.ead.course.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -15,6 +19,9 @@ public class CourseValidator implements Validator {
     @Autowired
     @Qualifier("defaultValidator")
     private Validator validator;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public boolean supports(Class<?> aClass) {
@@ -31,22 +38,12 @@ public class CourseValidator implements Validator {
     }
 
     private void validateUserInstructor(UUID userInstructorId, Errors errors){
-//       ResponseEntity<UserDTO> responseUser;
-//       try{
-//           responseUser = authUserClient.getUserById(userInstructorId);
-//           if(responseUser.getBody().getUserType().equals(UserType.STUDENT)){
-//               errors.rejectValue("userInstructor","UserInstructorError","User must be INSTRUCTOR or ADMIN");
-//           }
-//           }
-//       catch (HttpStatusCodeException exception){
-//
-//           if(exception.getStatusCode().equals(HttpStatus.NOT_FOUND)){
-//
-//               errors.rejectValue("userInstructor","UserInstructorError","User NOT Found");
-//
-//           }
-//
-//
-//       }
+        Optional<UserModel> userModelOptional = userService.findById(userInstructorId);
+        if(!userModelOptional.isPresent()){
+            errors.rejectValue("userInstructor", "UserInstructorError", "Instructor not found.");
+        }
+        if(userModelOptional.get().getUserType().equals(UserType.STUDENT.toString())){
+            errors.rejectValue("userInstructor", "UserInstructorError", "User must be INSTRUCTOR or ADMIN.");
+        }
        }
 }
