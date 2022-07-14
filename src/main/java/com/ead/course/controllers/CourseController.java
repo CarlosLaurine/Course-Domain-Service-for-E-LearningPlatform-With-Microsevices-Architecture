@@ -16,6 +16,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -40,6 +41,7 @@ public class CourseController {
     @Autowired
     private CourseValidator courseValidator;
 
+   @PreAuthorize("hasAnyRole('INSTRUCTOR')")
    @PostMapping
    public ResponseEntity<Object> insertCourse(@RequestBody CourseDTO courseDTO, Errors errors){
        log.debug("POST saveCourse courseDto received {} ", courseDTO.toString());
@@ -57,66 +59,70 @@ public class CourseController {
        return ResponseEntity.status(HttpStatus.CREATED).body(courseModel);
    }
 
+   @PreAuthorize("hasAnyRole('INSTRUCTOR')")
    @DeleteMapping("/{courseId}")
-    public ResponseEntity<Object> deleteCourse(@PathVariable(value = "courseId") UUID courseId){
-       log.debug("DELETE deleteCourse courseId received {} ", courseId);
+   public ResponseEntity<Object> deleteCourse(@PathVariable(value = "courseId") UUID courseId){
+      log.debug("DELETE deleteCourse courseId received {} ", courseId);
+      Optional<CourseModel> courseModelOptional = courseService.findById(courseId);
+      if(!courseModelOptional.isPresent()){
+          return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course Not Found");
+      }
+      courseService.delete(courseModelOptional.get());
+      log.debug("DELETE deleteCourse courseId deleted {} ", courseId);
+      log.info("Course deleted successfully courseId {} ", courseId);
+      return ResponseEntity.status(HttpStatus.OK).body("Course Deleted Successfully");
+   }
+
+   @PreAuthorize("hasAnyRole('INSTRUCTOR')")
+   @PutMapping("/{courseId}")
+   public ResponseEntity<Object> updateCourse( @RequestBody @Valid CourseDTO courseDTO,
+                                               @PathVariable(value = "courseId") UUID courseId){
+       log.debug("PUT updateCourse courseDto received {} ", courseDTO.toString());
        Optional<CourseModel> courseModelOptional = courseService.findById(courseId);
        if(!courseModelOptional.isPresent()){
            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course Not Found");
        }
-       courseService.delete(courseModelOptional.get());
-       log.debug("DELETE deleteCourse courseId deleted {} ", courseId);
-       log.info("Course deleted successfully courseId {} ", courseId);
-       return ResponseEntity.status(HttpStatus.OK).body("Course Deleted Successfully");
+       var courseModel = courseModelOptional.get();
+
+       BeanUtils.copyProperties(courseDTO, courseModel);
+       courseModel.setLastUpdateDate(LocalDateTime.now(ZoneId.of("UTC")));
+
+       courseService.save(courseModel);
+
+       log.debug("PUT updateCourse courseId saved {} ", courseModel.getCourseId());
+       log.info("Course updated successfully courseId {} ", courseModel.getCourseId());
+
+       return ResponseEntity.status(HttpStatus.OK).body(courseModel);
    }
 
-    @PutMapping("/{courseId}")
-    public ResponseEntity<Object> updateCourse( @RequestBody @Valid CourseDTO courseDTO,
-                                                @PathVariable(value = "courseId") UUID courseId){
-        log.debug("PUT updateCourse courseDto received {} ", courseDTO.toString());
-        Optional<CourseModel> courseModelOptional = courseService.findById(courseId);
-        if(!courseModelOptional.isPresent()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course Not Found");
-        }
-        var courseModel = courseModelOptional.get();
-
-        BeanUtils.copyProperties(courseDTO, courseModel);
-        courseModel.setLastUpdateDate(LocalDateTime.now(ZoneId.of("UTC")));
-
-        courseService.save(courseModel);
-
-        log.debug("PUT updateCourse courseId saved {} ", courseModel.getCourseId());
-        log.info("Course updated successfully courseId {} ", courseModel.getCourseId());
-
-        return ResponseEntity.status(HttpStatus.OK).body(courseModel);
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<CourseModel>> getAllCourses(SpecificationTemplate.CourseSpec spec,
+   @PreAuthorize("hasAnyRole('STUDENT')")
+   @GetMapping
+   public ResponseEntity<Page<CourseModel>> getAllCourses(SpecificationTemplate.CourseSpec spec,
                                                            @PageableDefault(page = 0, size = 10, sort = "courseId", direction = Sort.Direction.ASC) Pageable pageable,
                                                            @RequestParam(required = false) UUID userId){
-       boolean hasUserId = false;
+      boolean hasUserId = false;
 
-       if(userId != null){
-           hasUserId = true;
+      if(userId != null){
+          hasUserId = true;
+      }
+
+       Page<CourseModel> courseModelPage = (hasUserId) ? courseService.findAll(SpecificationTemplate.courseUserId(userId).and(spec) , pageable) : courseService.findAll(spec, pageable);
+
+       if (!courseModelPage.isEmpty()) {
+           for (CourseModel course : courseModelPage.toList()) {
+               course.add(linkTo(methodOn(CourseController.class).courseService.findById(course.getCourseId())).withSelfRel());
+           }
        }
+       return ResponseEntity.status(HttpStatus.OK).body(courseModelPage);
+   }
 
-        Page<CourseModel> courseModelPage = (hasUserId) ? courseService.findAll(SpecificationTemplate.courseUserId(userId).and(spec) , pageable) : courseService.findAll(spec, pageable);
-
-        if (!courseModelPage.isEmpty()) {
-            for (CourseModel course : courseModelPage.toList()) {
-                course.add(linkTo(methodOn(CourseController.class).courseService.findById(course.getCourseId())).withSelfRel());
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(courseModelPage);
-    }
-
-    @GetMapping("/{courseId}")
-    public ResponseEntity<Object> getCourseById(@PathVariable(value = "courseId") UUID courseId){
-        Optional<CourseModel> courseModelOptional = courseService.findById(courseId);
-        if(!courseModelOptional.isPresent()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course Not Found");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(courseModelOptional.get());
-    }
+   @PreAuthorize("hasAnyRole('STUDENT')")
+   @GetMapping("/{courseId}")
+   public ResponseEntity<Object> getCourseById(@PathVariable(value = "courseId") UUID courseId){
+       Optional<CourseModel> courseModelOptional = courseService.findById(courseId);
+       if(!courseModelOptional.isPresent()){
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course Not Found");
+       }
+       return ResponseEntity.status(HttpStatus.OK).body(courseModelOptional.get());
+   }
 }
