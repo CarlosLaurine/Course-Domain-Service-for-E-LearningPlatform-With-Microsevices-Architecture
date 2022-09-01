@@ -11,7 +11,7 @@ public class JwtProvider {
 
     Logger log = LogManager.getLogger(JwtProvider.class);
 
-    @Value("${ead.auth.jwtSecret}")
+    @Value("${ead.auth.jwt-secret}")
     private String jwtSecret;
 
 
