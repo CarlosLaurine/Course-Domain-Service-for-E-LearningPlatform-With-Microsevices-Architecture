@@ -1,0 +1,9 @@
+spring:
+  config:
+    import: 'configserver:'
+  cloud:
+    config:
+      dicovery:
+        serviceId: ead-config-server
+      username: configServerClient
+      password: 'secretead123cs'
